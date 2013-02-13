@@ -14,7 +14,7 @@ for arg in $@; do
 
 	case "$arg_name" in
 	"--prefix")
-		if [ SET_PREFIX -eq 0 ] then
+		if [ $SET_PREFIX -eq 0 ]; then
 			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_INSTALL_PREFIX:PATH=$arg_value"
 			SET_PREFIX=1
 		else
