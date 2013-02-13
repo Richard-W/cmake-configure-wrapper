@@ -1,8 +1,11 @@
 Usage:
 	Just add this script to the source dir of your cmake-project.
-	Now you can build an install your project similar to an autotools-project with
-	the following commands:
+	Now you can build an install your project similar to an autotools-project
+	with the following commands:
 
 	./configure
 	make
 	make install
+
+	As of now the configure script only supports the following options:
+	--prefix
