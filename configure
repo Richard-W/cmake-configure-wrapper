@@ -5,6 +5,7 @@ CMAKE_ARGUMENTS=""
 #Variables of the form SET_* are used to ensure
 #that an argument ist not called twice
 SET_PREFIX=0
+SET_CC=0
 
 #Read arguments
 for arg in $@; do
@@ -19,6 +20,15 @@ for arg in $@; do
 			SET_PREFIX=1
 		else
 			echo "--prefix used twice. Exiting..."
+			exit 1
+		fi
+		;;
+	"CC")
+		if [ $SET_CC -eq 0 ]; then
+			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_C_COMPILER=$arg_value"
+			SET_CC=1
+		else
+			echo "CC used twice. Exiting..."
 			exit 1
 		fi
 		;;
