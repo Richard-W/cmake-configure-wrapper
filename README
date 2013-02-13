@@ -6,3 +6,6 @@ Usage:
 	./configure
 	make
 	make install
+
+	As of now the configure script only supports the following options:
+	--prefix
