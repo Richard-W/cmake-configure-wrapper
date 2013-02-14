@@ -23,6 +23,15 @@ SET_PREFIX=0
 SET_CC=0
 SET_CXX=0
 
+#check if cmake is installed
+CMAKE_PATH=`which cmake`
+if [ $? -eq 0 ]; then
+	echo "Found cmake at $CMAKE_PATH"
+else
+	echo "Could not find cmake executable"
+	exit 1
+fi
+
 #Read arguments
 for arg in $@; do
 	#seperate key=value pairs
@@ -65,3 +74,15 @@ for arg in $@; do
 done
 
 cmake $CMAKE_ARGUMENTS .
+CMAKE_EXIT_STATUS=$?
+
+if [ $CMAKE_EXIT_STATUS -ne 0 ]; then
+	echo "Cmake terminated with error code "$CMAKE_EXIT_STATUS
+	exit 1
+fi
+
+#write config.status script
+echo "#!/bin/sh" > config.status
+echo $CMAKE_PATH""$CMAKE_ARGUMENTS" ." >> config.status
+chmod +x config.status
+echo "Created config.status"
