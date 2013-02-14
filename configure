@@ -74,3 +74,9 @@ for arg in $@; do
 done
 
 cmake $CMAKE_ARGUMENTS .
+CMAKE_EXIT_STATUS=$?
+
+if [ $CMAKE_EXIT_STATUS -ne 0 ]; then
+	echo "Cmake terminated with error code "$CMAKE_EXIT_STATUS
+	exit 1
+fi
