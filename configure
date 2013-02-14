@@ -80,3 +80,9 @@ if [ $CMAKE_EXIT_STATUS -ne 0 ]; then
 	echo "Cmake terminated with error code "$CMAKE_EXIT_STATUS
 	exit 1
 fi
+
+#write config.status script
+echo "#!/bin/sh" > config.status
+echo $CMAKE_PATH""$CMAKE_ARGUMENTS" ." >> config.status
+chmod +x config.status
+echo "Created config.status"
