@@ -22,6 +22,7 @@ CMAKE_ARGUMENTS=""
 SET_PREFIX=0
 SET_CC=0
 SET_CXX=0
+SET_SRCDIR=0
 
 #check if cmake is installed
 CMAKE_PATH=`which cmake`
@@ -45,6 +46,15 @@ for arg in $@; do
 			SET_PREFIX=1
 		else
 			echo "--prefix used twice. Exiting..."
+			exit 1
+		fi
+		;;
+	"--srcdir")
+		if [ $SET_SRCDIR -eq 0 ]; then
+			SOURCE_DIR=$arg_value;
+			SET_SRCDIR=1
+		else
+			echo "--srcdir used twice. Exiting..."
 			exit 1
 		fi
 		;;
@@ -73,8 +83,10 @@ for arg in $@; do
 	esac
 done
 
-#Get source directory
-SOURCE_DIR=`dirname $0`
+if [ $SET_SRCDIR -eq 0 ]; then
+	#Get source directory
+	SOURCE_DIR=`dirname $0`
+fi
 
 cmake $CMAKE_ARGUMENTS $SOURCE_DIR
 CMAKE_EXIT_STATUS=$?

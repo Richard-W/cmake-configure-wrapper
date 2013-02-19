@@ -11,3 +11,4 @@ Usage:
 	CC
 	CXX
 	--prefix
+	--srcdir
