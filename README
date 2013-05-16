@@ -13,3 +13,6 @@ Usage:
 	--prefix
 	--srcdir
 	--build-type
+
+	Example: 
+	./configure CC=/usr/bin/gcc CXX=/usr/bin/g++ --prefix=/usr --build-type=Debug
