@@ -12,3 +12,4 @@ Usage:
 	CXX
 	--prefix
 	--srcdir
+	--build-type
