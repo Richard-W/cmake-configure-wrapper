@@ -86,6 +86,11 @@ for arg in $@; do
 			exit 1
 		fi
 		;;
+	"--enable-"*)
+		real_arg=`echo $arg_name | sed -e s/--enable-// -e s/-/_/ -e s/^/-D/ | tr '[a-z]' '[A-Z]'`
+		test -z "$arg_value" && arg_value=ON
+		CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" "$real_arg"="$arg_value
+		;;
 	*)
 		echo "Unrecognized argument: $arg_name. Exiting..."
 		exit 1
