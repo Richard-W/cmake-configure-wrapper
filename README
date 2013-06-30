@@ -1,7 +1,7 @@
 Usage:
 	Just add this script to the source dir of your cmake-project.
-	Now you can build and install your project similar to an autotools-project
-	with the following commands:
+	Now you can build and install your project similar to an
+	autotools-project with the following commands:
 
 	./configure
 	make
@@ -12,7 +12,11 @@ Usage:
 	CXX
 	--prefix
 	--srcdir
-	--build-type
+	--enable-debug
+	--enable-*
+
+	--enable-foo-bar for example adds -DFOO_BAR=ON to the cmake-call
+	--enable-foo-bar=off add -DFOO_BAR=off to the cmake-call
 
 	Example: 
-	./configure CC=/usr/bin/gcc CXX=/usr/bin/g++ --prefix=/usr --build-type=Debug
+	./configure CC=/usr/bin/gcc CXX=/usr/bin/g++ --prefix=/usr --enable-debug
