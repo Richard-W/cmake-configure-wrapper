@@ -98,6 +98,10 @@ for arg in $@; do
 	esac
 done
 
+if [ $SET_DEBUG -eq 0 ]; then
+	CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_BUILD_TYPE=Release"
+fi
+
 if [ $SET_SRCDIR -eq 0 ]; then
 	#Get source directory
 	SOURCE_DIR=`dirname $0`
