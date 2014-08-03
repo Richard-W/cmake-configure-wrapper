@@ -1,6 +1,6 @@
 #!/bin/sh
 #cmake-configure-wrapper: An imitation of the autotools configure script
-#Copyright (C) 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
+#Copyright (C) 2013 2014 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
 #
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -15,108 +15,413 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CMAKE_ARGUMENTS=""
+cmake_args=""
+cmake_env=""
 
-#Variables of the form SET_* are used to ensure
-#that an argument ist not called twice
-SET_PREFIX=0
-SET_CC=0
-SET_CXX=0
-SET_SRCDIR=0
-SET_DEBUG=0
+error() {
+	echo "-- ERROR: $1"
+	exit $2;
+}
 
-#check if cmake is installed
-CMAKE_PATH=`which cmake`
-if [ $? -eq 0 ]; then
-	echo "Found cmake at $CMAKE_PATH"
+warning() {
+	echo "-- WARNING: $1"
+}
+
+notify() {
+	echo "-- $1"
+}
+
+ensure_value() {
+	if [ -z "$value" ]; then
+		value=$1
+
+		if [ -z "$value" ]; then
+			error "No value given for $key" 1
+		fi
+
+		if [ `echo $value | head -c 2` == "--" ]; then
+			error "$key=$value seems to be invalid" 1
+		fi
+
+		shift
+	fi
+}
+
+append_args() {
+	if [ -n "$cmake_args" ]; then
+		cmake_args="$cmake_args $1"
+	else
+		cmake_args="$1"
+	fi
+}
+
+append_env() {
+	if [ -n "$cmake_env" ]; then
+		cmake_env="$cmake_env $1=$2"
+	else
+		cmake_env="$1=$2"
+	fi
+}
+
+#Check if CMake is in $PATH
+if ! which cmake > /dev/null; then
+	error "cmake not found" 1
 else
-	echo "Could not find cmake executable"
-	exit 1
+	notify "Found `cmake --version`"
 fi
+cmake=`which cmake`
+
+srcdir=`dirname $0`
+notify "Source dir is $srcdir"
+bindir=`dirname $(pwd)`
+notify "Binary dir is $bindir"
+append_args $srcdir
+
+debug=false
 
 #Read arguments
-for arg in $@; do
+while [ $# != 0 ]; do
 	#seperate key=value pairs
-	arg_name=`echo $arg | cut -d'=' -f1`
-	arg_value=`echo $arg | cut -s -d'=' -f2`
+	key=`echo $1 | cut -d'=' -f1`
+	value=`echo $1 | cut -s -d'=' -f2`
 
-	case "$arg_name" in
-	"--prefix")
-		if [ $SET_PREFIX -eq 0 ]; then
-			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_INSTALL_PREFIX:PATH=$arg_value"
-			SET_PREFIX=1
-		else
-			echo "--prefix used twice. Exiting..."
-			exit 1
-		fi
+	case "$key" in
+	"--enable-debug")
+		debug=true
 		;;
 	"--srcdir")
-		if [ $SET_SRCDIR -eq 0 ]; then
-			SOURCE_DIR=$arg_value;
-			SET_SRCDIR=1
-		else
-			echo "--srcdir used twice. Exiting..."
-			exit 1
-		fi
-		;;
-	"--enable-debug")
-		if [ $SET_DEBUG -eq 0 ]; then
-			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_BUILD_TYPE=Debug"
-			SET_DEBUG=1
-		else
-			echo "--enable-debug used twice. Exiting..."
-			exit 1
-		fi
+		ensure_value $key
+		srcdir=$value
 		;;
 	"CC")
-		if [ $SET_CC -eq 0 ]; then
-			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_C_COMPILER=$arg_value"
-			SET_CC=1
-		else
-			echo "CC used twice. Exiting..."
-			exit 1
-		fi
+		ensure_value $key
+		append_args "-DCMAKE_C_COMPILER=$value"
 		;;
 	"CXX")
-		if [ $SET_CXX -eq 0 ]; then
-			CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_CXX_COMPILER=$arg_value"
-			SET_CXX=1
-		else
-			echo "CXX used twice. Exiting..."
-			exit 1
-		fi
+		ensure_value $key
+		append_args "-DCMAKE_CXX_COMPILER=$value"
+		;;
+	"CFLAGS")
+		ensure_value $key
+		append_args "-DCMAKE_C_FLAGS=$value"
+		;;
+	"CXXFLAGS")
+		ensure_value $key
+		append_args "-DCMAKE_CXX_FLAGS=$value"
 		;;
 	"--enable-"*)
-		real_arg=`echo $arg_name | sed -e s/--enable-// -e s/-/_/ -e s/^/-D/ | tr '[a-z]' '[A-Z]'`
-		test -z "$arg_value" && arg_value=ON
-		CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" "$real_arg"="$arg_value
+		feature=`echo $key | tail -c+10`
+		uppercase_feature=`echo $feature | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
+		append_args "-DFEATURE_$uppercase_feature=Yes"
+		;;
+	"--disable-"*)
+		feature=`echo $key | tail -c+11`
+		uppercase_feature=`echo $feature | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
+		append_args "-DFEATURE_$uppercase_feature=No"
+		;;
+	"--with-"*)
+		package=`echo $key | tail -c+8`
+		uppercase_package=`echo $package | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
+		append_args "-DPACKAGE_$uppercase_package=Yes"
+		;;
+	"--without-"*)
+		package=`echo $key | tail -c+11`
+		uppercase_package=`echo $package | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
+		append_args "-DPACKAGE_$uppercase_package=No"
+		;;
+	"--prefix")
+		ensure_value $key
+		prefix=$value
+		;;
+	"--exec-prefix")
+		ensure_value $key
+		exec_prefix=$value
+		;;
+	"--bindir")
+		ensure_value $key
+		bindir=$value
+		;;
+	"--sbindir")
+		ensure_value $key
+		sbindir=$value
+		;;
+	"--libexecdir")
+		ensure_value $key
+		libexecdir=$value
+		;;
+	"--sysconfdir")
+		ensure_value $key
+		sysconfdir=$value
+		;;
+	"--sharedstatedir")
+		ensure_value $key
+		sharedstatedir=$value
+		;;
+	"--localstatedir")
+		ensure_value $key
+		localstatedir=$value
+		;;
+	"--runstatedir")
+		ensure_value $key
+		runstatedir=$value
+		;;
+	"--libdir")
+		ensure_value $key
+		libdir=$value
+		;;
+	"--includedir")
+		ensure_value $key
+		includedir=$value
+		;;
+	"--oldincludedir")
+		ensure_value $key
+		oldincludedir=$value
+		;;
+	"--datarootdir")
+		ensure_value $key
+		datarootdir=$value
+		;;
+	"--datadir")
+		ensure_value $key
+		datadir=$value
+		;;
+	"--infodir")
+		ensure_value $key
+		infodir=$value
+		;;
+	"--localedir")
+		ensure_value $key
+		localedir=$value
+		;;
+	"--mandir")
+		ensure_value $key
+		mandir=$value
+		;;
+	"--docdir")
+		ensure_value $key
+		docdir=$value
+		;;
+	"--htmldir")
+		ensure_value $key
+		htmldir=$value
+		;;
+	"--dvidir")
+		ensure_value $key
+		dvidir=$value
+		;;
+	"--pdfdir")
+		ensure_value $key
+		pdfdir=$value
+		;;
+	"--psdir")
+		ensure_value $key
+		psdir=$value
 		;;
 	*)
-		echo "Unrecognized argument: $arg_name. Exiting..."
-		exit 1
+		warning "Unknown option: $key"
 		;;
 	esac
+	shift
 done
 
-if [ $SET_DEBUG -eq 0 ]; then
-	CMAKE_ARGUMENTS=$CMAKE_ARGUMENTS" -DCMAKE_BUILD_TYPE=Release"
-fi
-
-if [ $SET_SRCDIR -eq 0 ]; then
-	#Get source directory
-	SOURCE_DIR=`dirname $0`
-fi
-
-cmake $CMAKE_ARGUMENTS $SOURCE_DIR
-CMAKE_EXIT_STATUS=$?
-
-if [ $CMAKE_EXIT_STATUS -ne 0 ]; then
-	echo "Cmake terminated with error code "$CMAKE_EXIT_STATUS
-	exit 1
+if $debug; then
+	append_args "-DCMAKE_BUILD_TYPE=Debug"
+else
+	append_args "-DCMAKE_BUILD_TYPE=Release"
 fi
 
 #write config.status script
-echo "#!/bin/sh" > config.status
-echo $CMAKE_PATH""$CMAKE_ARGUMENTS" "$SOURCE_DIR >> config.status
+cat > ./config.status << "EOF"
+#!/bin/sh
+
+error() {
+	echo "-- ERROR: $1"
+	exit $2;
+}
+
+warning() {
+	echo "-- WARNING: $1"
+}
+
+notify() {
+	echo "-- $1"
+}
+
+EOF
+
+if [ -n "$prefix" ]; then
+	echo "prefix=$prefix" >> ./config.status
+else
+	echo "prefix=/usr/local" >> ./config.status
+fi
+
+if [ -n "$exec_prefix" ]; then
+	echo "exec_prefix=$exec_prefix" >> ./config.status
+else
+	echo "exec_prefix=\$prefix" >> ./config.status
+fi
+
+if [ -n "$bindir" ]; then
+	echo "bindir=$bindir" >> ./config.status
+else
+	echo "bindir=\$exec_prefix/bin" >> ./config.status
+fi
+
+if [ -n "$sbindir" ]; then
+	echo "sbindir=$sbindir" >> ./config.status
+else
+	echo "sbindir=\$exec_prefix/sbin" >> ./config.status
+fi
+
+if [ -n "$libdir" ]; then
+	echo "libdir=$libdir" >> ./config.status
+else
+	echo "libdir=\$exec_prefix/lib" >> ./config.status
+fi
+
+if [ -n "$libexecdir" ]; then
+	echo "libexecdir=$libexecdir" >> ./config.status
+else
+	echo "libexecdir=\$exec_prefix/libexec" >> ./config.status
+fi
+
+if [ -n "$sysconfdir" ]; then
+	echo "sysconfdir=$sysconfdir" >> ./config.status
+else
+	echo "sysconfdir=\$prefix/etc" >> ./config.status
+fi
+
+if [ -n "$sharedstatedir" ]; then
+	echo "sharedstatedir=$sharedstatedir" >> ./config.status
+else
+	echo "sharedstatedir=\$prefix/com" >> ./config.status
+fi
+
+if [ -n "$localstatedir" ]; then
+	echo "localstatedir=$localstatedir" >> ./config.status
+else
+	echo "localstatedir=\$prefix/var" >> ./config.status
+fi
+
+if [ -n "$runstatedir" ]; then
+	echo "runstatedir=$runstatedir" >> ./config.status
+else
+	echo "runstatedir=\$localstatedir/run" >> ./config.status
+fi
+
+if [ -n "$includedir" ]; then
+	echo "includedir=$includedir" >> ./config.status
+else
+	echo "includedir=\$prefix/include" >> ./config.status
+fi
+
+if [ -n "$oldincludedir" ]; then
+	echo "oldincludedir=$oldincludedir" >> ./config.status
+fi
+
+if [ -n "$datarootdir" ]; then
+	echo "datarootdir=$datarootdir" >> ./config.status
+else
+	echo "datarootdir=\$prefix/share" >> ./config.status
+fi
+
+if [ -n "$datadir" ]; then
+	echo "datadir=$datadir" >> ./config.status
+else
+	echo "datadir=\$datarootdir" >> ./config.status
+fi
+
+if [ -n "$infodir" ]; then
+	echo "infodir=$infodir" >> ./config.status
+else
+	echo "infodir=\$datarootdir/info" >> ./config.status
+fi
+
+if [ -n "$localedir" ]; then
+	echo "localedir=$localedir" >> ./config.status
+else
+	echo "localedir=\$datarootdir/locale" >> ./config.status
+fi
+
+if [ -n "$mandir" ]; then
+	echo "mandir=$mandir" >> ./config.status
+else
+	echo "mandir=\$datarootdir/man" >> ./config.status
+fi
+
+if [ -n "$docdir" ]; then
+	echo "docdir=$docdir" >> ./config.status
+else
+	#Does not conform GNU Coding Standard, but we have
+	#no way to determine what the project name is.
+	echo "docdir=\$datarootdir/doc" >> ./config.status
+fi
+
+if [ -n "$htmldir" ]; then
+	echo "htmldir=$htmldir" >> ./config.status
+else
+	echo "htmldir=\$docdir" >> ./config.status
+fi
+
+if [ -n "$dvidir" ]; then
+	echo "dvidir=$dvidir" >> ./config.status
+else
+	echo "dvidir=\$docdir" >> ./config.status
+fi
+
+if [ -n "$pdfdir" ]; then
+	echo "pdfdir=$pdfdir" >> ./config.status
+else
+	echo "pdfdir=\$docdir" >> ./config.status
+fi
+
+if [ -n "$psdir" ]; then
+	echo "psdir=$psdir" >> ./config.status
+else
+	echo "psdir=\$docdir" >> ./config.status
+fi
+
+cat >> ./config.status << EOF
+$cmake_env $cmake \
+	-DCMAKE_INSTALL_PREFIX=\$prefix \
+	-DINSTALL_PREFIX=\$prefix \
+	-DINSTALL_EXEC_PREFIX=\$exec_prefix \
+	-DINSTALL_BINDIR=\$bindir \
+	-DINSTALL_SBINDIR=\$sbindir \
+	-DINSTALL_LIBEXECDIR=\$libexecdir \
+	-DINSTALL_SYSCONFDIR=\$sysconfdir \
+	-DINSTALL_SHAREDSTATEDIR=\$sharedstatedir \
+	-DINSTALL_LOCALSTATEDIR=\$localstatedir \
+	-DINSTALL_RUNSTATEDIR=\$runstatedir \
+	-DINSTALL_LIBDIR=\$libdir \
+	-DINSTALL_INCLUDEDIR=\$includedir \
+	-DINSTALL_OLDINCLUDEDIR=\$oldincludedir \
+	-DINSTALL_DATAROOTDIR=\$datarootdir \
+	-DINSTALL_DATADIR=\$datadir \
+	-DINSTALL_INFODIR=\$infodir \
+	-DINSTALL_LOCALEDIR=\$localedir \
+	-DINSTALL_MANDIR=\$mandir \
+	-DINSTALL_DOCDIR=\$docdir \
+	-DINSTALL_HTMLDIR=\$htmldir \
+	-DINSTALL_DVIDIR=\$dvidir \
+	-DINSTALL_PDFDIR=\$pdfdir \
+	-DINSTALL_PSDIR=\$psdir \
+	$cmake_args $srcdir
+
+cmake_exit_code=\$?
+
+if [ \$cmake_exit_code -ne 0 ]; then
+	error "CMake terminated with error code \$cmake_exit_code" \$cmake_exit_code
+	exit \$cmake_exit_code
+fi
+EOF
+
 chmod +x config.status
-echo "Created config.status"
+notify "Executing config.status"
+
+./config.status
+config_exit=$?
+
+if [ $config_exit -ne 0 ]; then
+	error "config.status terminated with error code $config_exit" $config_exit
+fi
