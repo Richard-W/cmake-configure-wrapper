@@ -1,3 +1,18 @@
+# Copyright (C) 2014 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 if (NOT DEFINED INSTALL_PREFIX)
 	set (INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 endif ()
@@ -82,6 +97,7 @@ if (NOT DEFINED INSTALL_PSDIR)
 	set (INSTALL_PSDIR "${INSTALL_DOCDIR}")
 endif ()
 
+# Suppress unused-warning
 set (DUMMY "${INSTALL_PREFIX} ${INSTALL_EXEC_PREFIX} ${INSTALL_BINDIR} ${INSTALL_SBINDIR} ${INSTALL_LIBDIR} ${INSTALL_LIBEXECDIR} ${INSTALL_SYSCONFDIR} ${INSTALL_SHAREDSTATEDIR} ${INSTALL_LOCALSTATEDIR} ${INSTALL_RUNSTATEDIR} ${INSTALL_INCLUDEDIR} ${INSTALL_OLDINCLUDEDIR} ${INSTALL_DATAROOTDIR} ${INSTALL_DATADIR} ${INSTALL_INFODIR} ${INSTALL_LOCALEDIR} ${INSTALL_MANDIR} ${INSTALL_DOCDIR} ${INSTALL_HTMLDIR}${INSTALL_DVIDIR} ${INSTALL_PDFDIR} ${INSTALL_PSDIR}")
 
 mark_as_advanced (DUMMY)
