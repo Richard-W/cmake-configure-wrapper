@@ -175,7 +175,7 @@ while [ $# != 0 ]; do
 		;;
 	"--oldincludedir")
 		ensure_value $key
-		oldincludedir=$value
+		append_args "-DINSTALL_OLDINCLUDEDIR=$value"
 		;;
 	"--datarootdir")
 		ensure_value $key
@@ -315,10 +315,6 @@ else
 	echo "includedir=\$prefix/include" >> ./config.status
 fi
 
-if [ -n "$oldincludedir" ]; then
-	echo "oldincludedir=$oldincludedir" >> ./config.status
-fi
-
 if [ -n "$datarootdir" ]; then
 	echo "datarootdir=$datarootdir" >> ./config.status
 else
@@ -395,7 +391,6 @@ $cmake_env $cmake \
 	-DINSTALL_RUNSTATEDIR=\$runstatedir \
 	-DINSTALL_LIBDIR=\$libdir \
 	-DINSTALL_INCLUDEDIR=\$includedir \
-	-DINSTALL_OLDINCLUDEDIR=\$oldincludedir \
 	-DINSTALL_DATAROOTDIR=\$datarootdir \
 	-DINSTALL_DATADIR=\$datadir \
 	-DINSTALL_INFODIR=\$infodir \
