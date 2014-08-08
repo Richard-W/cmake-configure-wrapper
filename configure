@@ -74,7 +74,6 @@ srcdir=`dirname $0`
 notify "Source dir is $srcdir"
 bindir=`dirname $(pwd)`
 notify "Binary dir is $bindir"
-append_args $srcdir
 
 debug=false
 
