@@ -39,4 +39,4 @@ normally will be set to their default location (relative to CMAKE\_INSTALL\_PREF
 License
 -------
 
-This project is licensed under the BSD 2-Clause Licensed.
+This project is licensed under the BSD 2-Clause License.
