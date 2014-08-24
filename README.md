@@ -35,3 +35,8 @@ This leads to a serious problem: The standard CMake Parameters are ignored and c
 This can be solved by moving the file ConfigureWrapper to your projects CMAKE\_MODULE\_PATH and issuing `include (ConfigureWrapper)` at the start of
 your projects CMakeLists.txt. If you build the project with configure nothing will change, but if you use cmake directly the variables the script sets
 normally will be set to their default location (relative to CMAKE\_INSTALL\_PREFIX).
+
+License
+-------
+
+This project is licensed under the BSD 2-Clause Licensed.
