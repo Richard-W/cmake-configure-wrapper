@@ -39,19 +39,20 @@ notify() {
 	echo "-- $1"
 }
 
+shift_twice=false
 ensure_value() {
 	if [ -z "$value" ]; then
-		value=$1
+		value=$2
 
 		if [ -z "$value" ]; then
 			error "No value given for $key" 1
 		fi
 
-		if [ `echo $value | head -c 2` == "--" ]; then
+		if [ "`echo $value | head -c 2`" = "--" ]; then
 			error "$key=$value seems to be invalid" 1
 		fi
 
-		shift
+		shift_twice=true
 	fi
 }
 
@@ -97,23 +98,23 @@ while [ $# != 0 ]; do
 		debug=true
 		;;
 	"--srcdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		srcdir=$value
 		;;
 	"CC")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		append_args "-DCMAKE_C_COMPILER=$value"
 		;;
 	"CXX")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		append_args "-DCMAKE_CXX_COMPILER=$value"
 		;;
 	"CFLAGS")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		append_args "-DCMAKE_C_FLAGS=$value"
 		;;
 	"CXXFLAGS")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		append_args "-DCMAKE_CXX_FLAGS=$value"
 		;;
 	"--enable-"*)
@@ -137,91 +138,91 @@ while [ $# != 0 ]; do
 		append_args "-DPACKAGE_$uppercase_package=No"
 		;;
 	"--prefix")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		prefix=$value
 		;;
 	"--exec-prefix")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		exec_prefix=$value
 		;;
 	"--bindir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		bindir=$value
 		;;
 	"--sbindir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		sbindir=$value
 		;;
 	"--libexecdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		libexecdir=$value
 		;;
 	"--sysconfdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		sysconfdir=$value
 		;;
 	"--sharedstatedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		sharedstatedir=$value
 		;;
 	"--localstatedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		localstatedir=$value
 		;;
 	"--runstatedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		runstatedir=$value
 		;;
 	"--libdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		libdir=$value
 		;;
 	"--includedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		includedir=$value
 		;;
 	"--oldincludedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		append_args "-DINSTALL_OLDINCLUDEDIR=$value"
 		;;
 	"--datarootdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		datarootdir=$value
 		;;
 	"--datadir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		datadir=$value
 		;;
 	"--infodir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		infodir=$value
 		;;
 	"--localedir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		localedir=$value
 		;;
 	"--mandir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		mandir=$value
 		;;
 	"--docdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		docdir=$value
 		;;
 	"--htmldir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		htmldir=$value
 		;;
 	"--dvidir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		dvidir=$value
 		;;
 	"--pdfdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		pdfdir=$value
 		;;
 	"--psdir")
-		ensure_value $key
+		ensure_value "$value" "$2"
 		psdir=$value
 		;;
 	*)
@@ -229,6 +230,10 @@ while [ $# != 0 ]; do
 		;;
 	esac
 	shift
+	if $shift_twice; then
+		shift
+		shift_twice=false
+	fi
 done
 
 if $debug; then
