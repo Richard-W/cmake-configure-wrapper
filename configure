@@ -120,22 +120,22 @@ while [ $# != 0 ]; do
 	"--enable-"*)
 		feature=`echo $key | tail -c+10`
 		uppercase_feature=`echo $feature | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
-		append_args "-DFEATURE_$uppercase_feature=Yes"
+		append_args "-DFEATURE_$uppercase_feature=ON"
 		;;
 	"--disable-"*)
 		feature=`echo $key | tail -c+11`
 		uppercase_feature=`echo $feature | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
-		append_args "-DFEATURE_$uppercase_feature=No"
+		append_args "-DFEATURE_$uppercase_feature=OFF"
 		;;
 	"--with-"*)
 		package=`echo $key | tail -c+8`
 		uppercase_package=`echo $package | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
-		append_args "-DPACKAGE_$uppercase_package=Yes"
+		append_args "-DPACKAGE_$uppercase_package=ON"
 		;;
 	"--without-"*)
 		package=`echo $key | tail -c+11`
 		uppercase_package=`echo $package | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/g'`
-		append_args "-DPACKAGE_$uppercase_package=No"
+		append_args "-DPACKAGE_$uppercase_package=OFF"
 		;;
 	"--prefix")
 		ensure_value "$value" "$2"
