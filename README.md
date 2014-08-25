@@ -16,9 +16,9 @@ Enable and Disable features/packages
 ---------------------------
 
 The script takes arguments of the form --enable-\* and --disable-\*. Passing an argument like --enable-foo-bar sets
-FEATURE\_FOO\_BAR=Yes. --disable-foo-bar would set the same variable to "No".
+FEATURE\_FOO\_BAR=ON. --disable-foo-bar would set the same variable to "OFF".
 
-The same applies to the arguments --with-\* and --without-\*. --with-foo-bar sets PACKAGE\_FOO\_BAR=Yes. --without-foo-bar sets it to "No".
+The same applies to the arguments --with-\* and --without-\*. --with-foo-bar sets PACKAGE\_FOO\_BAR=ON. --without-foo-bar sets it to "OFF".
 
 Integrating with CMake
 ----------------------
