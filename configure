@@ -39,10 +39,13 @@ notify() {
 	echo "-- $1"
 }
 
-shift_twice=false
+# Should only be called while reading arguments.
+# This ensures that $value is set and nonempty
+# (--prefix=/usr). If it is not set it checks
+# if the next arg may be the value (--prefix /usr)
 ensure_value() {
 	if [ -z "$value" ]; then
-		value=$2
+		value=$1
 
 		if [ -z "$value" ]; then
 			error "No value given for $key" 1
@@ -56,6 +59,7 @@ ensure_value() {
 	fi
 }
 
+# Appends string to the cmake call
 append_args() {
 	if [ -n "$cmake_args" ]; then
 		cmake_args="$cmake_args $1"
@@ -64,6 +68,7 @@ append_args() {
 	fi
 }
 
+# Sets an environment variable in front of the cmake call
 append_env() {
 	if [ -n "$cmake_env" ]; then
 		cmake_env="$cmake_env $1=$2"
@@ -92,29 +97,30 @@ while [ $# != 0 ]; do
 	#seperate key=value pairs
 	key=`echo $1 | cut -d'=' -f1`
 	value=`echo $1 | cut -s -d'=' -f2`
+	shift_twice=false
 
 	case "$key" in
 	"--enable-debug")
 		debug=true
 		;;
 	"--srcdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		srcdir=$value
 		;;
 	"CC")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		append_args "-DCMAKE_C_COMPILER=$value"
 		;;
 	"CXX")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		append_args "-DCMAKE_CXX_COMPILER=$value"
 		;;
 	"CFLAGS")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		append_args "-DCMAKE_C_FLAGS=$value"
 		;;
 	"CXXFLAGS")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		append_args "-DCMAKE_CXX_FLAGS=$value"
 		;;
 	"--enable-"*)
@@ -138,101 +144,101 @@ while [ $# != 0 ]; do
 		append_args "-DPACKAGE_$uppercase_package=OFF"
 		;;
 	"--prefix")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		prefix=$value
 		;;
 	"--exec-prefix")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		exec_prefix=$value
 		;;
 	"--bindir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		bindir=$value
 		;;
 	"--sbindir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		sbindir=$value
 		;;
 	"--libexecdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		libexecdir=$value
 		;;
 	"--sysconfdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		sysconfdir=$value
 		;;
 	"--sharedstatedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		sharedstatedir=$value
 		;;
 	"--localstatedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		localstatedir=$value
 		;;
 	"--runstatedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		runstatedir=$value
 		;;
 	"--libdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		libdir=$value
 		;;
 	"--includedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		includedir=$value
 		;;
 	"--oldincludedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		append_args "-DINSTALL_OLDINCLUDEDIR=$value"
 		;;
 	"--datarootdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		datarootdir=$value
 		;;
 	"--datadir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		datadir=$value
 		;;
 	"--infodir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		infodir=$value
 		;;
 	"--localedir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		localedir=$value
 		;;
 	"--mandir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		mandir=$value
 		;;
 	"--docdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		docdir=$value
 		;;
 	"--htmldir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		htmldir=$value
 		;;
 	"--dvidir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		dvidir=$value
 		;;
 	"--pdfdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		pdfdir=$value
 		;;
 	"--psdir")
-		ensure_value "$value" "$2"
+		ensure_value "$2"
 		psdir=$value
 		;;
 	*)
 		warning "Unknown option: $key"
 		;;
 	esac
-	shift
 	if $shift_twice; then
-		shift
-		shift_twice=false
+		shift 2
+	else
+		shift 1
 	fi
 done
 
