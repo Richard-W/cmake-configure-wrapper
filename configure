@@ -96,7 +96,7 @@ debug=false
 while [ $# != 0 ]; do
 	#seperate key=value pairs
 	key=`echo $1 | cut -d'=' -f1`
-	value=`echo $1 | cut -s -d'=' -f2`
+	value=`echo $1 | cut -s -d'=' -f2-`
 	shift_twice=false
 
 	case "$key" in
