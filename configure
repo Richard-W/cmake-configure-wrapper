@@ -85,10 +85,10 @@ else
 fi
 cmake=`which cmake`
 
-srcdir=`dirname $0`
-notify "Source dir is $srcdir"
-bindir=`dirname $(pwd)`
-notify "Binary dir is $bindir"
+cmake_srcdir=`dirname $0`
+notify "Source dir is $cmake_srcdir"
+cmake_bindir=`pwd`
+notify "Binary dir is $cmake_bindir"
 
 debug=false
 
@@ -105,7 +105,7 @@ while [ $# != 0 ]; do
 		;;
 	"--srcdir")
 		ensure_value "$2"
-		srcdir=$value
+		cmake_srcdir=$value
 		;;
 	"CC")
 		ensure_value "$2"
@@ -419,7 +419,7 @@ $cmake_env $cmake \
 	-DINSTALL_DVIDIR=\$dvidir \
 	-DINSTALL_PDFDIR=\$pdfdir \
 	-DINSTALL_PSDIR=\$psdir \
-	$cmake_args $srcdir
+	$cmake_args $cmake_srcdir
 
 cmake_exit_code=\$?
 
